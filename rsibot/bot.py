@@ -54,13 +54,14 @@ def on_message(ws, message):
 
         if len(closes) > EMA_PERIOD20:
             np_closes = numpy.array(closes)
-            ema5 = bt.ind.ExponentialMovingAverage(np_closes, EMA_PERIOD5)
-            ema20 = bt.ind.ExponentialMovingAverage(np_closes, EMA_PERIOD20)
+            ema5 = talib.EMA(np_closes, EMA_PERIOD5)
+            ema20 = talib.EMA(np_closes, EMA_PERIOD20)
             print("all ema's calculated so far")
             print(ema5,ema20)
             last_ema= ema20[-1]
             print("the current 20 period ema is {}".format(ema20))
             cross=bt.ind.CrossOver(ema5,ema20)
+
 
             if cross < 0:
                 if in_position:
@@ -82,6 +83,6 @@ def on_message(ws, message):
                     if order_succeeded:
                         in_position = True
 
-                
+
 ws = websocket.WebSocketApp(SOCKET, on_open=on_open, on_close=on_close, on_message=on_message)
 ws.run_forever()
