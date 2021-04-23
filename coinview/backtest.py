@@ -7,7 +7,7 @@ class maxRiskSizer(bt.Sizer):
     Returns the number of shares rounded down that can be purchased for the
     max rish tolerance
     '''
-    params = (('risk', 0.3),)
+    params = (('risk', 1),)
 
     def __init__(self):
         if self.p.risk > 1 or self.p.risk < 0:
@@ -26,14 +26,14 @@ class maxRiskSizer(bt.Sizer):
 class RSIStrategy(bt.Strategy):
 
     def __init__(self):
-        self.rsi = bt.ind.RSI(self.data, period=14)
-
-
+        self.ema5 = bt.ind.ExponentialMovingAverage(self.data, period=5)
+        self.ema20 = bt.ind.ExponentialMovingAverage(self.data, period=20)
+        self.cross= bt.ind.CrossOver(self.ema5,self.ema20)
     def next(self):
-        if self.rsi < 20 and not self.position:
+        if self.cross>0 and not self.position:
             self.buy()
 
-        if self.rsi > 80 and self.position:
+        elif self.cross<0 and self.position:
             self.close()
 
 
@@ -44,7 +44,7 @@ data = bt.feeds.GenericCSVData(dataname='data/2020_15minutes.csv', dtformat=2, c
                                timeframe=bt.TimeFrame.Minutes)
 
 cerebro.adddata(data)
-cerebro.broker.setcash(100000)
+cerebro.broker.setcash(10000)
 cerebro.addstrategy(RSIStrategy)
 #add the sizer
 cerebro.addsizer(maxRiskSizer)

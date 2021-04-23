@@ -2,12 +2,12 @@ import websocket, json, pprint, talib, numpy
 import config
 from binance.client import Client
 from binance.enums import *
+import backtrader as bt
 
 SOCKET = "wss://stream.binance.com:9443/ws/ethusdt@kline_1m"
 
-RSI_PERIOD = 14
-RSI_OVERBOUGHT = 70
-RSI_OVERSOLD = 30
+EMA_PERIOD20 = 20
+EMA_PERIOD5 = 5
 TRADE_SYMBOL = 'ETHUSD'
 TRADE_QUANTITY = 0.01
 
@@ -52,17 +52,19 @@ def on_message(ws, message):
         print("closes")
         print(closes)
 
-        if len(closes) > RSI_PERIOD:
+        if len(closes) > EMA_PERIOD20:
             np_closes = numpy.array(closes)
-            rsi = talib.RSI(np_closes, RSI_PERIOD)
-            print("all rsis calculated so far")
-            print(rsi)
-            last_rsi = rsi[-1]
-            print("the current rsi is {}".format(last_rsi))
+            ema5 = bt.ind.ExponentialMovingAverage(np_closes, EMA_PERIOD5)
+            ema20 = bt.ind.ExponentialMovingAverage(np_closes, EMA_PERIOD20)
+            print("all ema's calculated so far")
+            print(ema5,ema20)
+            last_ema= ema20[-1]
+            print("the current 20 period ema is {}".format(ema20))
+            cross=bt.ind.CrossOver(ema5,ema20)
 
-            if last_rsi > RSI_OVERBOUGHT:
+            if cross < 0:
                 if in_position:
-                    print("Overbought! Sell!")
+                    print("Sell!")
                     # put binance sell logic here
                     order_succeeded = order(SIDE_SELL, TRADE_QUANTITY, TRADE_SYMBOL)
                     if order_succeeded:
@@ -70,11 +72,11 @@ def on_message(ws, message):
                 else:
                     print("It is overbought, but we don't own any. Nothing to do.")
             
-            if last_rsi < RSI_OVERSOLD:
+            if cross>0:
                 if in_position:
                     print("It is oversold, but you already own it, nothing to do.")
                 else:
-                    print("Oversold! Buy!")
+                    print("Buy!")
                     # put binance buy order logic here
                     order_succeeded = order(SIDE_BUY, TRADE_QUANTITY, TRADE_SYMBOL)
                     if order_succeeded:
