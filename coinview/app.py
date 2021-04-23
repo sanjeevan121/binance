@@ -6,7 +6,7 @@ from binance.enums import *
 app = Flask(__name__)
 app.secret_key = b'somelongrandomstring'
 
-client = Client(config.API_KEY, config.API_SECRET, tld='us')
+client = Client(config.API_KEY, config.API_SECRET)
 
 
 @app.route('/')

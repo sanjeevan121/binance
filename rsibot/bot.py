@@ -9,12 +9,12 @@ RSI_PERIOD = 14
 RSI_OVERBOUGHT = 70
 RSI_OVERSOLD = 30
 TRADE_SYMBOL = 'ETHUSD'
-TRADE_QUANTITY = 0.05
+TRADE_QUANTITY = 0.01
 
 closes = []
 in_position = False
 
-client = Client(config.API_KEY, config.API_SECRET, tld='us')
+client = Client(config.API_KEY, config.API_SECRET)
 
 def order(side, quantity, symbol,order_type=ORDER_TYPE_MARKET):
     try:
@@ -62,7 +62,7 @@ def on_message(ws, message):
 
             if last_rsi > RSI_OVERBOUGHT:
                 if in_position:
-                    print("Overbought! Sell! Sell! Sell!")
+                    print("Overbought! Sell!")
                     # put binance sell logic here
                     order_succeeded = order(SIDE_SELL, TRADE_QUANTITY, TRADE_SYMBOL)
                     if order_succeeded:
@@ -74,7 +74,7 @@ def on_message(ws, message):
                 if in_position:
                     print("It is oversold, but you already own it, nothing to do.")
                 else:
-                    print("Oversold! Buy! Buy! Buy!")
+                    print("Oversold! Buy!")
                     # put binance buy order logic here
                     order_succeeded = order(SIDE_BUY, TRADE_QUANTITY, TRADE_SYMBOL)
                     if order_succeeded:
